@@ -21,6 +21,7 @@ jobs:
       - name: Refresh data
         run: npm run data:refresh
         env:
+          UPSTREAM_API: "https://api.kingshill.cineworld-planner.co.uk:43000"
           SCREENPLAN_DAYS: "5"
           SCREENPLAN_MAX_CINEMAS: "35"
           SCREENPLAN_CONCURRENCY: "2"

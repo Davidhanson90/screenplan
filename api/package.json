@@ -1,7 +1,7 @@
 {
   "name": "screenplan-api",
   "version": "1.0.0",
-  "description": "screenplan API — fetches and maps Cineworld schedule data",
+  "description": "screenplan API — proxies Roaders cineworld-planner API (with scrape fallback)",
   "type": "module",
   "private": true,
   "scripts": {

@@ -1,0 +1,17 @@
+{
+  "name": "screenplan-proxy",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Cloudflare Worker CORS bridge to Roaders cineworld-planner API",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "check": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250917.0",
+    "typescript": "^5.9.3",
+    "wrangler": "^4.34.0"
+  }
+}

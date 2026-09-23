@@ -8,3 +8,5 @@ coverage/
 api/dist/
 api/node_modules/
 .vite/
+worker/node_modules/
+worker/.wrangler/

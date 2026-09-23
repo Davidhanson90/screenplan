@@ -2,6 +2,7 @@ import type { Express, Request, Response } from "express";
 import rateLimit from "express-rate-limit";
 import { CinemaService } from "./cinema-service.js";
 import { isValidIsoDate, parseCinemaCode } from "./cineworld-client.js";
+import { fetchUpstream, upstreamBase } from "./upstream.js";
 
 export function setupRoutes(app: Express, service = new CinemaService()): void {
   const limiter = rateLimit({
@@ -14,7 +15,13 @@ export function setupRoutes(app: Express, service = new CinemaService()): void {
   app.use("/cinema", limiter);
 
   app.get("/cinema", async (_req: Request, res: Response) => {
+    const proxied = await fetchUpstream("/cinema");
+    if (proxied.ok) {
+      res.json(proxied.data);
+      return;
+    }
     try {
+      console.warn("upstream cinema list failed, falling back to scrape:", proxied.error);
       const cinemas = await service.getCinemas();
       res.json(cinemas);
     } catch (err) {
@@ -30,7 +37,14 @@ export function setupRoutes(app: Express, service = new CinemaService()): void {
       res.status(400).json({ error: "Invalid cinema or date" });
       return;
     }
+    const path = `/cinema/${encodeURIComponent(code)}/listings/${date}`;
+    const proxied = await fetchUpstream(path);
+    if (proxied.ok) {
+      res.json(proxied.data);
+      return;
+    }
     try {
+      console.warn("upstream listings failed, falling back to scrape:", proxied.error);
       const listings = await service.getListings(code, date);
       res.json(listings);
     } catch (err) {
@@ -40,6 +54,11 @@ export function setupRoutes(app: Express, service = new CinemaService()): void {
   });
 
   app.get("/health", (_req, res) => {
-    res.json({ ok: true, service: "screenplan-api" });
+    res.json({
+      ok: true,
+      service: "screenplan-api",
+      upstream: upstreamBase(),
+      mode: "proxy"
+    });
   });
 }

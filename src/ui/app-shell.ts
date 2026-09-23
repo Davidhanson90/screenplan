@@ -1,7 +1,7 @@
 import { LitElement, css, html, nothing } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import { ACCESS_ATTRIBUTES, FORMAT_ATTRIBUTES, chipAttributes } from "../lib/attributes.js";
-import { DataClient } from "../lib/data-client.js";
+import { DataClient, resolveApiBase } from "../lib/data-client.js";
 import { distanceKm, formatDistance } from "../lib/distance.js";
 import { cycleFilterMode, matchesFilters, upsertFilter } from "../lib/filters.js";
 import { fuzzyFilter } from "../lib/fuzzy.js";
@@ -109,6 +109,10 @@ export class SpApp extends LitElement {
       gap: 8px;
       flex-wrap: wrap;
       align-items: center;
+    }
+    .banner.live {
+      border-color: color-mix(in srgb, var(--accent, #7dd3fc) 45%, transparent);
+      background: color-mix(in srgb, var(--accent, #7dd3fc) 12%, transparent);
     }
     .banner {
       margin-top: 10px;
@@ -461,12 +465,14 @@ export class SpApp extends LitElement {
     this.applyTheme();
     const url = readUrlState();
     if (url.api) {
+      // Explicit ?api= wins and is persisted.
       this.prefs = { ...this.prefs, apiBase: url.api };
       savePrefs(this.prefs);
     }
     if (url.date && this.dates.includes(url.date)) this.selectedDate = url.date;
     if (url.films?.length) this.selectedFilmIds = url.films;
-    this.client.setApiBase(this.prefs.apiBase);
+    // Prefer saved/?api= base; else VITE_API_BASE / worker / localhost:3000 / kingshill direct.
+    this.client.setApiBase(resolveApiBase(this.prefs.apiBase));
     void this.bootstrap(url.cinema);
   }
 
@@ -678,15 +684,21 @@ export class SpApp extends LitElement {
               <a class="btn" href="https://github.com/Davidhanson90/screenplan" target="_blank" rel="noreferrer">GitHub</a>
             </div>
           </div>
-          ${this.dataMode === "snapshot"
-            ? html`<div class="banner" role="status">
+          ${this.dataMode === "live"
+            ? html`<div class="banner live" role="status">
+                Live listings via cineworld-planner API${this.client.status.via === "proxy"
+                  ? " (proxy)"
+                  : this.client.status.via === "direct"
+                    ? " (direct)"
+                    : ""}
+              </div>`
+            : html`<div class="banner" role="status">
                 Demo data / last refreshed:
                 ${this.refreshedAt
                   ? new Date(this.refreshedAt).toLocaleString()
                   : "bundled snapshot"}
                 · Live API optional via <code>?api=</code>
-              </div>`
-            : nothing}
+              </div>`}
         </header>
 
         ${this.error ? html`<div class="error" role="alert">${this.error}</div>` : nothing}

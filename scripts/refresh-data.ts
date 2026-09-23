@@ -1,7 +1,7 @@
 /**
  * Refresh bundled snapshot data for GitHub Pages offline demo.
- * Uses the public original API server-side (no browser CORS), with optional
- * direct Cineworld mapping via SCREENPLAN_DIRECT=1.
+ * Prefers the Roaders cineworld-planner API (UPSTREAM_API) server-side
+ * (no browser CORS). Optional SCREENPLAN_DIRECT=1 scrapes Cineworld instead.
  */
 import { mkdir, writeFile, rm } from "node:fs/promises";
 import { dirname, join } from "node:path";
@@ -11,7 +11,8 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const OUT = join(ROOT, "public", "data");
 const DAYS = Number(process.env.SCREENPLAN_DAYS || 5);
 const MAX_CINEMAS = Number(process.env.SCREENPLAN_MAX_CINEMAS || 35);
-const FALLBACK_API =
+const UPSTREAM_API =
+  process.env.UPSTREAM_API ||
   process.env.SCREENPLAN_FALLBACK_API ||
   "https://api.kingshill.cineworld-planner.co.uk:43000";
 const USE_DIRECT = process.env.SCREENPLAN_DIRECT === "1";
@@ -95,7 +96,7 @@ async function main(): Promise<void> {
   await rm(OUT, { recursive: true, force: true });
   await mkdir(join(OUT, "listings"), { recursive: true });
 
-  let source = "fallback-api";
+  let source = "upstream-api";
   let cinemas: Array<{ externalCode: string; name: string }> = [];
   let loadListings: (code: string, date: string) => Promise<unknown>;
 
@@ -105,12 +106,12 @@ async function main(): Promise<void> {
     cinemas = await client.loadAllCinemas();
     loadListings = (code, date) => client.loadListings(code, date);
   } else {
-    cinemas = (await fetchJson(`${FALLBACK_API}/cinema`)) as Array<{
+    cinemas = (await fetchJson(`${UPSTREAM_API}/cinema`)) as Array<{
       externalCode: string;
       name: string;
     }>;
     loadListings = (code, date) =>
-      fetchJson(`${FALLBACK_API}/cinema/${encodeURIComponent(code)}/listings/${date}`);
+      fetchJson(`${UPSTREAM_API}/cinema/${encodeURIComponent(code)}/listings/${date}`);
   }
 
   await writeFile(join(OUT, "cinemas.json"), JSON.stringify(cinemas));

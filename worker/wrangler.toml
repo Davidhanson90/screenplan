@@ -1,0 +1,9 @@
+name = "screenplan-proxy"
+main = "src/index.ts"
+compatibility_date = "2025-09-01"
+
+# Optional: set after first deploy and wire into frontend via VITE_API_BASE
+# workers_dev = true
+
+[vars]
+UPSTREAM_API = "https://api.kingshill.cineworld-planner.co.uk:43000"
