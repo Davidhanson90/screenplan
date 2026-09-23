@@ -4,12 +4,6 @@ on:
   schedule:
     - cron: "15 5 * * *"
   workflow_dispatch:
-  push:
-    branches: [main]
-    paths:
-      - "api/**"
-      - "scripts/refresh-data.ts"
-      - ".github/workflows/refresh-data.yml"
 
 permissions:
   contents: write
@@ -29,6 +23,7 @@ jobs:
         env:
           SCREENPLAN_DAYS: "5"
           SCREENPLAN_MAX_CINEMAS: "35"
+          SCREENPLAN_CONCURRENCY: "2"
       - name: Commit if changed
         run: |
           git config user.name "github-actions[bot]"
