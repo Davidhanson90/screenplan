@@ -44,7 +44,8 @@ function isLocalHost(hostname: string): boolean {
 
 /**
  * Resolve which API base to try for live listings.
- * Priority: explicit (?api= / saved) → VITE_API_BASE → known worker → localhost:3000 on local → kingshill direct.
+ * Priority: explicit (?api= / saved) → VITE_API_BASE → known worker → localhost:3000 on local → null (bundled demo).
+ * On GitHub Pages / production with no explicit base, return null so the client never hits kingshill (CORS).
  */
 export function resolveApiBase(explicit: string | null | undefined): string | null {
   if (explicit && explicit.trim()) return cleanBase(explicit.trim());
@@ -58,8 +59,8 @@ export function resolveApiBase(explicit: string | null | undefined): string | nu
     return LOCAL_API;
   }
 
-  // Pages / production: try upstream direct (may CORS-fail → snapshot fallback).
-  return UPSTREAM_DIRECT;
+  // Pages / production: bundled fake demo only (no live attempt).
+  return null;
 }
 
 function classifyVia(apiBase: string | null): LiveVia | undefined {

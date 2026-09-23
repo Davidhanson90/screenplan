@@ -19,6 +19,7 @@
     "api:build": "npm --prefix api run build",
     "api:start": "npm --prefix api run start",
     "data:refresh": "tsx scripts/refresh-data.ts",
+    "data:demo": "tsx scripts/generate-demo-data.ts",
     "verify": "npm run build:verify && npm run api:build && npm --prefix api test"
   },
   "keywords": [

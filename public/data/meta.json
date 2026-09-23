@@ -1,8 +1,11 @@
 {
-  "refreshedAt": "2026-09-23T19:24:55.471Z",
-  "source": "fallback-api",
-  "days": 5,
-  "cinemaCount": 88,
-  "listingCinemaCount": 35,
-  "listingFiles": 172
+  "refreshedAt": "2026-09-23T20:46:58.405Z",
+  "source": "fake-demo",
+  "days": 7,
+  "cinemaCount": 10,
+  "listingCinemaCount": 10,
+  "listingFiles": 70,
+  "demo": true,
+  "filmCount": 7,
+  "eventsPerDay": 25
 }

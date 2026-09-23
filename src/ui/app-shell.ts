@@ -16,6 +16,7 @@ import { loadPrefs, pushRecent, savePrefs, toggleFavorite } from "../lib/prefere
 import { formatClock, formatDateLabel, nextDays, todayIso } from "../lib/time.js";
 import { readUrlState, writeUrlState } from "../lib/url-state.js";
 import type {
+  SnapshotMeta,
   Cinema,
   Film,
   FilmAttribute,
@@ -58,6 +59,7 @@ export class SpApp extends LitElement {
   @state() private toast: string | null = null;
   @state() private dataMode: "live" | "snapshot" = "snapshot";
   @state() private refreshedAt: string | null = null;
+  @state() private snapshotMeta: SnapshotMeta | null = null;
 
   private client = new DataClient(null);
   private toastTimer: number | undefined;
@@ -471,7 +473,7 @@ export class SpApp extends LitElement {
     }
     if (url.date && this.dates.includes(url.date)) this.selectedDate = url.date;
     if (url.films?.length) this.selectedFilmIds = url.films;
-    // Prefer saved/?api= base; else VITE_API_BASE / worker / localhost:3000 / kingshill direct.
+    // Prefer saved/?api= base; else VITE_API_BASE / worker / localhost:3000; Pages → null (demo).
     this.client.setApiBase(resolveApiBase(this.prefs.apiBase));
     void this.bootstrap(url.cinema);
   }
@@ -493,6 +495,7 @@ export class SpApp extends LitElement {
     this.error = null;
     try {
       const meta = await this.client.loadMeta();
+      this.snapshotMeta = meta;
       this.refreshedAt = meta?.refreshedAt ?? null;
       this.cinemas = await this.client.getCinemas();
       this.dataMode = this.client.status.mode;
@@ -692,13 +695,21 @@ export class SpApp extends LitElement {
                     ? " (direct)"
                     : ""}
               </div>`
-            : html`<div class="banner" role="status">
-                Demo data / last refreshed:
-                ${this.refreshedAt
-                  ? new Date(this.refreshedAt).toLocaleString()
-                  : "bundled snapshot"}
-                · Live API optional via <code>?api=</code>
-              </div>`}
+            : this.snapshotMeta?.demo || this.snapshotMeta?.source === "fake-demo"
+              ? html`<div class="banner" role="status">
+                  Demo data (fake listings for trying the planner)
+                  ${this.refreshedAt
+                    ? html` · generated ${new Date(this.refreshedAt).toLocaleString()}`
+                    : nothing}
+                  · Live via local proxy or <code>?api=</code>
+                </div>`
+              : html`<div class="banner" role="status">
+                  Bundled snapshot / last refreshed:
+                  ${this.refreshedAt
+                    ? new Date(this.refreshedAt).toLocaleString()
+                    : "unknown"}
+                  · Live API optional via <code>?api=</code>
+                </div>`}
         </header>
 
         ${this.error ? html`<div class="error" role="alert">${this.error}</div>` : nothing}
@@ -902,7 +913,7 @@ export class SpApp extends LitElement {
             : this.loadingListings
               ? html`<div class="skeleton" aria-busy="true"></div>`
               : this.films.length === 0
-                ? html`<div class="empty">No films listed for this day (demo snapshot may be limited).</div>`
+                ? html`<div class="empty">No films listed for this day.</div>`
                 : html`<div class="film-grid">
                     ${this.films.map((film) => this.renderFilmCard(film))}
                   </div>`}

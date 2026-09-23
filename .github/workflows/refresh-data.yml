@@ -1,4 +1,4 @@
-name: Refresh snapshot data
+name: Refresh demo data
 
 on:
   schedule:
@@ -18,13 +18,8 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
-      - name: Refresh data
-        run: npm run data:refresh
-        env:
-          UPSTREAM_API: "https://api.kingshill.cineworld-planner.co.uk:43000"
-          SCREENPLAN_DAYS: "5"
-          SCREENPLAN_MAX_CINEMAS: "35"
-          SCREENPLAN_CONCURRENCY: "2"
+      - name: Generate fake demo data
+        run: npm run data:demo
       - name: Commit if changed
         run: |
           git config user.name "github-actions[bot]"
@@ -33,6 +28,6 @@ jobs:
           if git diff --staged --quiet; then
             echo "No data changes"
           else
-            git commit -m "chore: refresh cinema snapshot data"
+            git commit -m "chore: refresh fake demo listings"
             git push
           fi

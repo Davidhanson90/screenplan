@@ -84,6 +84,10 @@ export interface SnapshotMeta {
   days: number;
   cinemaCount: number;
   listingFiles: number;
+  listingCinemaCount?: number;
+  demo?: boolean;
+  filmCount?: number;
+  eventsPerDay?: number;
 }
 
 export type FilterMode = "include" | "exclude" | "off";
